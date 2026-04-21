@@ -1,3 +1,7 @@
+
+
+
+
 <!doctype html>
 <html lang="en">
   <head>
@@ -19,54 +23,77 @@
   <body>
     <div class="container mt-5">
       <h2 class="text-center mb-4">My Todo List</h2>
+
       <div class="input-group mb-3">
         <input
           type="text"
           id="taskinput"
           class="form-control"
-          placeholder="enter your task"
+          placeholder="Enter your task"
         />
         <button id="addbtn" class="btn btn-secondary">Add</button>
       </div>
+
       <p>Total tasks: <span id="count">0</span></p>
+
       <ul id="tasklist" class="list-group"></ul>
-      <button id="clearAll" class="btn btn-danger">Clear All</button>
+
+      <button id="clearAll" class="btn btn-danger mt-3">Clear All</button>
     </div>
+
     <script>
       $(document).ready(function () {
         let count = 0;
+
+        function updateCount() {
+          $("#count").text(count);
+        }
+
+        // Add task
         $("#addbtn").click(function () {
-          let task = $("#taskinput").val();
+          let task = $("#taskinput").val().trim();
+
           if (task !== "") {
-            $("#tasklist").append(
-              `<li class="list-group-item d-flex justify-content-between
-               align-items-center">
+            $("#tasklist").append(`
+              <li class="list-group-item d-flex justify-content-between align-items-center">
                 <span>${task}</span>
                 <div>
-                <button class="done btn btn-success btn-sm">Done</button>
-                <button class="delete btn btn-danger btn-sm">Delete</button>
+                  <button class="done btn btn-success btn-sm">Done</button>
+                  <button class="delete btn btn-danger btn-sm">Delete</button>
                 </div>
-                </li>  </br>`,
-            );
+              </li>
+            `);
+
             $("#taskinput").val("");
             count++;
-            $("#count").text(count);
+            updateCount();
           }
         });
-        $(document).on("click", ".done", function () {
-          console.log(this);
-          $(this).closest("li ").toggleClass("list-group-item-success");
-        });
-        $(document).on("click", ".delete", function () {
-          $(this).closest("li").remove();
-          count--;
-          $("#count").text(count);
+
+        // Press Enter to add task
+        $("#taskinput").keypress(function (e) {
+          if (e.which === 13) {
+            $("#addbtn").click();
+          }
         });
 
-        $("clearAll").click(function () {
+        // Mark as done
+        $(document).on("click", ".done", function () {
+          $(this).closest("li").toggleClass("list-group-item-success");
+        });
+
+        // Delete task
+        $(document).on("click", ".delete", function () {
+          $(this).closest("li").remove();
+          if (count > 0) count--;
+          updateCount();
+        });
+
+        // Clear all tasks
+        $("#clearAll").click(function () {
           $("#tasklist").empty();
           count = 0;
-          $("#count").text(count);
+          updateCount();
         });
       });
     </script>
