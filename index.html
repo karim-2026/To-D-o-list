@@ -1,19 +1,17 @@
-
 <!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
     <title>Todo App</title>
 
-    <!-- bootstrap -->
+    <!-- Bootstrap -->
     <link
       rel="stylesheet"
       href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
     />
 
-    <!-- jquery -->
+    <!-- jQuery -->
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
   </head>
 
@@ -31,6 +29,14 @@
         <button id="addbtn" class="btn btn-secondary">Add</button>
       </div>
 
+      <!-- Progress Bar -->
+      <div class="progress mb-3">
+        <div
+          class="progress-bar bg-success progress-bar-striped progress-bar-animated"
+          style="width: 0%"
+        ></div>
+      </div>
+
       <p>Total tasks: <span id="count">0</span></p>
 
       <ul id="tasklist" class="list-group"></ul>
@@ -40,10 +46,17 @@
 
     <script>
       $(document).ready(function () {
-        let count = 0;
+        let total = 0;
+        let completed = 0;
 
-        function updateCount() {
-          $("#count").text(count);
+        function updateUI() {
+          $("#count").text(total);
+
+          let percent = total === 0 ? 0 : (completed / total) * 100;
+
+          $(".progress-bar")
+            .css("width", percent + "%")
+            .attr("aria-valuenow", percent);
         }
 
         // Add task
@@ -62,12 +75,12 @@
             `);
 
             $("#taskinput").val("");
-            count++;
-            updateCount();
+            total++;
+            updateUI();
           }
         });
 
-        // Press Enter to add task
+        // Press Enter
         $("#taskinput").keypress(function (e) {
           if (e.which === 13) {
             $("#addbtn").click();
@@ -76,21 +89,38 @@
 
         // Mark as done
         $(document).on("click", ".done", function () {
-          $(this).closest("li").toggleClass("list-group-item-success");
+          let li = $(this).closest("li");
+
+          if (li.hasClass("list-group-item-success")) {
+            li.removeClass("list-group-item-success");
+            completed--;
+          } else {
+            li.addClass("list-group-item-success");
+            completed++;
+          }
+
+          updateUI();
         });
 
         // Delete task
         $(document).on("click", ".delete", function () {
-          $(this).closest("li").remove();
-          if (count > 0) count--;
-          updateCount();
+          let li = $(this).closest("li");
+
+          if (li.hasClass("list-group-item-success")) {
+            completed--;
+          }
+
+          li.remove();
+          total--;
+          updateUI();
         });
 
-        // Clear all tasks
+        // Clear all
         $("#clearAll").click(function () {
           $("#tasklist").empty();
-          count = 0;
-          updateCount();
+          total = 0;
+          completed = 0;
+          updateUI();
         });
       });
     </script>
