@@ -13,6 +13,8 @@
 
     <!-- jQuery -->
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+
+    <link rel="manifest" href="manifest.json" />
   </head>
 
   <body>
@@ -26,6 +28,7 @@
           class="form-control"
           placeholder="Enter your task"
         />
+        <input type="time" id="tasktime" class="form-control" />
         <button id="addbtn" class="btn btn-secondary">Add</button>
       </div>
 
@@ -37,12 +40,24 @@
         ></div>
       </div>
 
-      <p>Total tasks: <span id="count">0</span></p>
+      <p>
+        Total: <span id="count">0</span> | ✅ Done:
+        <span id="doneCount">0</span> | ❌ Pending:
+        <span id="pendingCount">0</span>
+      </p>
 
       <ul id="tasklist" class="list-group"></ul>
 
       <button id="clearAll" class="btn btn-danger mt-3">Clear All</button>
     </div>
+
+    <!-- Alarm sound -->
+    <audio id="alarmSound">
+      <source
+        src="https://www.soundjay.com/buttons/sounds/beep-07.mp3"
+        type="audio/mpeg"
+      />
+    </audio>
 
     <script>
       $(document).ready(function () {
@@ -51,6 +66,8 @@
 
         function updateUI() {
           $("#count").text(total);
+          $("#doneCount").text(completed);
+          $("#pendingCount").text(total - completed);
 
           let percent = total === 0 ? 0 : (completed / total) * 100;
 
@@ -59,35 +76,58 @@
             .attr("aria-valuenow", percent);
         }
 
+        function checkAlarms() {
+          let now = new Date();
+          let currentTime = now.toTimeString().slice(0, 5);
+
+          $(".task-time").each(function () {
+            let taskTime = $(this).data("time");
+
+            if (taskTime === currentTime && !$(this).data("triggered")) {
+              $(this).data("triggered", true);
+              $("#alarmSound")[0].play();
+              alert("⏰ Task time: " + $(this).text());
+            }
+          });
+        }
+
+        setInterval(checkAlarms, 1000);
+
         // Add task
         $("#addbtn").click(function () {
           let task = $("#taskinput").val().trim();
+          let time = $("#tasktime").val();
 
           if (task !== "") {
             $("#tasklist").append(`
-              <li class="list-group-item d-flex justify-content-between align-items-center">
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+              <div>
                 <span>${task}</span>
-                <div>
-                  <button class="done btn btn-success btn-sm">Done</button>
-                  <button class="delete btn btn-danger btn-sm">Delete</button>
-                </div>
-              </li>
-            `);
+                ${time ? `<small class="text-muted task-time ms-2" data-time="${time}">(${time})</small>` : ""}
+              </div>
+              <div>
+                <button class="done btn btn-success btn-sm">Done</button>
+                <button class="delete btn btn-danger btn-sm">Delete</button>
+              </div>
+            </li>
+          `);
 
             $("#taskinput").val("");
+            $("#tasktime").val("");
+
             total++;
             updateUI();
           }
         });
 
-        // Press Enter
+        // Enter key
         $("#taskinput").keypress(function (e) {
           if (e.which === 13) {
             $("#addbtn").click();
           }
         });
 
-        // Mark as done
+        // Toggle done (color only)
         $(document).on("click", ".done", function () {
           let li = $(this).closest("li");
 
@@ -102,7 +142,7 @@
           updateUI();
         });
 
-        // Delete task
+        // Delete
         $(document).on("click", ".delete", function () {
           let li = $(this).closest("li");
 
